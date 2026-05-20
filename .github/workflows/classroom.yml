@@ -1,0 +1,81 @@
+name: GitHub Classroom Workflow
+
+on:
+  - workflow_dispatch
+  - repository_dispatch
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    name: Autograding
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Descuento estudiantes ORT
+        id: descuento-estudiantes-ort
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Descuento estudiantes ORT
+          command: npx vitest run -t 'descuento para estudiantes'
+          timeout: '1'
+          max-score: '1'
+
+      - name: Sin descuento (no estudiantes)
+        id: sin-descuento-no-estudiantes
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Sin descuento (no estudiantes)
+          command: npx vitest run -t 'no son estudiantes'
+          timeout: '1'
+          max-score: '1'
+
+      - name: División entre varias personas
+        id: division-varias-personas
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: División entre varias personas
+          command: npx vitest run -t 'varias personas'
+          timeout: '1'
+          max-score: '1'
+
+      - name: Sin descuento con mayúscula
+        id: sin-descuento-mayuscula
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Sin descuento con mayúscula
+          command: npx vitest run -t 'may.scula'
+          timeout: '1'
+          max-score: '1'
+
+      - name: División con resultado decimal
+        id: division-resultado-decimal
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: División con resultado decimal
+          command: npx vitest run -t 'resultado decimal'
+          timeout: '1'
+          max-score: '1'
+
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          DESCUENTO-ESTUDIANTES-ORT_RESULTS: '${{steps.descuento-estudiantes-ort.outputs.result}}'
+          SIN-DESCUENTO-NO-ESTUDIANTES_RESULTS: '${{steps.sin-descuento-no-estudiantes.outputs.result}}'
+          DIVISION-VARIAS-PERSONAS_RESULTS: '${{steps.division-varias-personas.outputs.result}}'
+          SIN-DESCUENTO-MAYUSCULA_RESULTS: '${{steps.sin-descuento-mayuscula.outputs.result}}'
+          DIVISION-RESULTADO-DECIMAL_RESULTS: '${{steps.division-resultado-decimal.outputs.result}}'
+        with:
+          runners: descuento-estudiantes-ort,sin-descuento-no-estudiantes,division-varias-personas,sin-descuento-mayuscula,division-resultado-decimal
